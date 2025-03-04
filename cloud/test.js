@@ -7,4 +7,3 @@ console.log('This is a test file');
 function sayHello(name) {
     return `Hello, ${name}!`;
 }
-//# sourceMappingURL=test.js.map

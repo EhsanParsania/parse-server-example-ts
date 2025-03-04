@@ -68,4 +68,3 @@ Parse.Cloud.job('cleanupOldScores', async (request) => {
   };
 });
 */ 
-//# sourceMappingURL=example.js.map

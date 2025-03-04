@@ -10,6 +10,5 @@ Parse.Cloud.define('hello', (req) => {
 Parse.Cloud.define('asyncFunction', async (req) => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     req.log.info(req);
-    return 'Hi async 12';
+    return 'Hi async';
 });
-//# sourceMappingURL=functions.js.map
