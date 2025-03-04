@@ -1,8 +1,12 @@
+"use strict";
 /**
  * Example TypeScript file for Parse Server cloud code
  *
  * This file demonstrates how to define cloud functions and triggers in TypeScript
  */
+Object.defineProperty(exports, "__esModule", { value: true });
+// Import types for the FunctionRequest interface
+require("./types");
 // Example cloud function
 Parse.Cloud.define('helloWorld', async (request) => {
     const name = request.params.name || 'World';

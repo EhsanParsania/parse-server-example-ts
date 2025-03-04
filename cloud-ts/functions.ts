@@ -1,4 +1,4 @@
-// Import types
+// Import types for the FunctionRequest interface
 import './types';
 
 // Define cloud functions

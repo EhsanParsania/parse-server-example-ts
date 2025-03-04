@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-// Import types
+// Import types for the FunctionRequest interface
 require("./types");
 // Define cloud functions
 Parse.Cloud.define('hello', (req) => {

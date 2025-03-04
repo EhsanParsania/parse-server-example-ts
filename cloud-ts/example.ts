@@ -4,6 +4,9 @@
  * This file demonstrates how to define cloud functions and triggers in TypeScript
  */
 
+// Import types for the FunctionRequest interface
+import './types';
+
 // Example cloud function
 Parse.Cloud.define('helloWorld', async (request: Parse.FunctionRequest) => {
   const name = request.params.name || 'World';
