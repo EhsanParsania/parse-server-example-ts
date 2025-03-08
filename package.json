@@ -22,8 +22,8 @@
     "build:ts": "tsc",
     "watch:cloud-sync": "node watch-cloud.mjs",
     "build:cloud": "tsc --project tsconfig.json",
-    "clean:cloud": "rimraf ./cloud/**/*",
-    "dev": "concurrently \"npm run watch:cloud-sync\" \"npm run watch\"",
+    "clean:cloud": "rimraf \"./cloud\"",
+    "dev": "npm run clean:cloud && concurrently \"npm run watch:cloud-sync\" \"npm run watch\"",
     "build:cloud-sync": "npm run clean:cloud && npm run build:cloud"
   },
   "dependencies": {
