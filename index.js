@@ -8,7 +8,7 @@ const http = require('http');
 
 const config = {
   databaseURI:
-    process.env.DATABASE_URI || process.env.MONGODB_URI || '',
+    process.env.DATABASE_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/dev',
   cloud: process.env.CLOUD_CODE_MAIN || __dirname + '/cloud/main.js',
   appId: process.env.APP_ID || 'appId',
   masterKey: process.env.MASTER_KEY || 'masterKey', //Add your master key here. Keep it secret!
