@@ -21,8 +21,11 @@
     "build": "node build.mjs",
     "build:ts": "tsc",
     "watch:ts": "node watch.mjs",
-    "dev": "concurrently \"npm run watch:ts\" \"npm run watch\"",
-    "ts-check": "tsc --noEmit"
+    "watch:cloud-sync": "node watch-cloud.mjs",
+    "build:cloud": "tsc --project tsconfig.json",
+    "clean:cloud": "rimraf ./cloud/**/*",
+    "dev": "concurrently \"npm run watch:cloud-sync\" \"npm run watch:ts\" \"npm run watch\"",
+    "build:cloud-sync": "npm run clean:cloud && npm run build:cloud"
   },
   "dependencies": {
     "axios": "1.7.7",
@@ -50,6 +53,7 @@
     "nodemon": "3.1.7",
     "nyc": "17.1.0",
     "prettier": "3.3.3",
+    "rimraf": "^5.0.5",
     "semantic-release": "24.2.0",
     "typescript": "^5.3.3"
   },
