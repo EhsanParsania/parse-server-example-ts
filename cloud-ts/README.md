@@ -1,49 +1,25 @@
-# TypeScript Cloud Code for Parse Server
+# TypeScript Cloud Code
 
-This directory contains TypeScript versions of cloud code for Parse Server. The TypeScript files are compiled to JavaScript and automatically copied to the `cloud` directory, which is where Parse Server looks for cloud code.
+This directory contains TypeScript code that compiles to the `cloud` directory where Parse Server reads cloud code.
 
-## How it works
-
-1. Write your cloud code in TypeScript in this directory
-2. When you save a TypeScript file, it's automatically compiled to JavaScript
-3. The compiled JavaScript file is automatically placed in the `cloud` directory
-4. Parse Server reads the JavaScript files from the `cloud` directory
-
-## Development
-
-To start development with TypeScript:
-
-1. Run `npm run dev` - This will start both:
-   - The TypeScript watcher that compiles files when you save them
-   - The Parse Server with nodemon for auto-reloading
-
-2. Edit your TypeScript files in the `cloud-ts` directory
-3. Every time you save a file (Ctrl+S), it will:
-   - Automatically compile to JavaScript
-   - Place the compiled JavaScript in the `cloud` directory
-   - Parse Server will reload with the new code
-
-## Building
-
-To manually build all TypeScript files:
+## Quick Start
 
 ```bash
-npm run build
+# Development with auto-compilation and file sync (including deletions)
+npm run dev
+
+# One-time build (for commits)
+npm run build:cloud-sync
 ```
 
-This will compile all TypeScript files in the `cloud-ts` directory to JavaScript and place them in the `cloud` directory.
+## How It Works
 
-## Type Checking
+- Write TypeScript in `cloud-ts/`
+- Files auto-compile to JavaScript in `cloud/`
+- When TS files are deleted, JS files are also deleted
 
-To check your TypeScript files for errors without compiling:
+## Tips
 
-```bash
-npm run ts-check
-```
-
-## Best Practices
-
-- Keep the same file structure in `cloud-ts` as you would in `cloud`
-- Don't edit files in the `cloud` directory directly, as they will be overwritten
-- When adding new files, be sure to import them in `main.ts`
-- Use TypeScript interfaces for Parse objects when possible 
+- Don't edit files in `cloud/` - they'll be overwritten
+- New files should be imported in `main.ts`
+- Use TypeScript interfaces for Parse objects 
