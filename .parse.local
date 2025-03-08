@@ -1,0 +1,7 @@
+{
+  "applications": {
+    "YOUR_APP_ID": {
+      "applicationId": "YOUR_APPLICATION_ID"
+    },
+  }
+}
