@@ -1,34 +1,56 @@
-// watch-cloud.mjs - Script to watch for changes in cloud-ts TypeScript files and compile them
+// watch-cloud.mjs - Simplified and efficient TypeScript file watcher and compiler
 import { exec } from 'child_process';
 import fs from 'fs/promises';
-import { watch } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import chokidar from 'chokidar';
+import ts from 'typescript';
 
-// Get the current directory
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Compile all TypeScript files
+// Function to compile a single TypeScript file directly using transpileModule
+const compileSingleFile = async (filePath) => {
+  try {
+    console.log(`Compiling file: ${filePath}`);
+
+    const relativePath = path.relative(path.join(__dirname, 'cloud-ts'), filePath);
+    const outputPath = path.join(__dirname, 'cloud', relativePath.replace(/\.ts$/, '.js'));
+
+    const tsContent = await fs.readFile(filePath, 'utf8');
+
+    // Read and parse tsconfig.json
+    const tsConfigPath = path.join(__dirname, 'tsconfig.json');
+    const tsConfigFile = ts.readConfigFile(tsConfigPath, ts.sys.readFile);
+    const parsedConfig = ts.parseJsonConfigFileContent(tsConfigFile.config, ts.sys, path.dirname(tsConfigPath));
+
+    // Transpile the TypeScript content
+    const result = ts.transpileModule(tsContent, { compilerOptions: parsedConfig.options, fileName: filePath });
+
+    // Ensure output directory exists
+    await fs.mkdir(path.dirname(outputPath), { recursive: true });
+
+    // Write the transpiled JavaScript
+    await fs.writeFile(outputPath, result.outputText);
+
+    console.log(`Successfully compiled file: ${filePath}`);
+  } catch (err) {
+    console.error(`Error compiling file ${filePath}: ${err.message}`);
+    throw err;
+  }
+};
+
+// Full compilation for initial build or fallback
 const compileAll = async () => {
   return new Promise((resolve, reject) => {
     console.log('Compiling all TypeScript files...');
-    const command = `npx tsc -p tsconfig.json`;
-    
-    exec(command, (error, stdout, stderr) => {
-      if (stdout) {
-        console.log(stdout);
-      }
-      
-      if (stderr) {
-        console.error(`TypeScript compiler errors: ${stderr}`);
-      }
-      
+    exec(`npx tsc --project tsconfig.json --incremental`, (error, stdout, stderr) => {
+      if (stdout) console.log(stdout);
+      if (stderr) console.error(`TypeScript compiler errors: ${stderr}`);
       if (error) {
         console.error(`Error compiling: ${error.message}`);
         return reject(error);
       }
-      
       console.log('Successfully compiled all TypeScript files');
       resolve();
     });
@@ -36,129 +58,39 @@ const compileAll = async () => {
 };
 
 // Handle file deletion
-const handleDeletion = async (filename) => {
-  if (!filename.endsWith('.ts')) return;
-  
-  // Get corresponding JS file path
-  const relativePath = filename;
-  const jsFilePath = path.join('cloud', relativePath.replace('.ts', '.js'));
-  
+const handleDeletion = async (filePath) => {
+  if (!filePath.endsWith('.ts')) return;
+  const relativePath = path.relative(path.join(__dirname, 'cloud-ts'), filePath);
+  const jsFilePath = path.join(__dirname, 'cloud', relativePath.replace('.ts', '.js'));
+
   try {
-    // Check if the JavaScript file exists
-    await fs.access(jsFilePath);
-    
-    // Delete the JavaScript file if it exists
     await fs.unlink(jsFilePath);
-    console.log(`Deleted corresponding JavaScript file: ${jsFilePath}`);
-    
-    // Handle .d.ts and .js.map files if they exist
-    const dtsFilePath = path.join('cloud', relativePath.replace('.ts', '.d.ts'));
-    const mapFilePath = path.join('cloud', relativePath.replace('.ts', '.js.map'));
-    
-    try {
-      await fs.access(dtsFilePath);
-      await fs.unlink(dtsFilePath);
-      console.log(`Deleted declaration file: ${dtsFilePath}`);
-    } catch (err) {
-      // File doesn't exist, ignore
-    }
-    
-    try {
-      await fs.access(mapFilePath);
-      await fs.unlink(mapFilePath);
-      console.log(`Deleted source map file: ${mapFilePath}`);
-    } catch (err) {
-      // File doesn't exist, ignore
-    }
+    console.log(`Deleted JavaScript file: ${jsFilePath}`);
   } catch (err) {
-    // File doesn't exist or other error
-    console.log(`Note: No JavaScript file found to delete for ${filename}`);
+    console.log(`No JavaScript file found to delete for ${relativePath}`);
   }
 };
 
-// Watch for changes in the cloud-ts directory
+// Watch for changes
 const watchForChanges = () => {
-  // Ensure cloud directory exists
-  fs.mkdir('cloud', { recursive: true })
-    .then(() => {
-      console.log('Watching cloud-ts directory for changes and deletions...');
-      
-      // Track existing files in the cloud-ts directory
-      let knownFiles = new Set();
-      
-      // Function to scan and update the list of known files
-      const updateKnownFiles = async () => {
-        try {
-          const files = await fs.readdir('cloud-ts', { recursive: true });
-          const newKnownFiles = new Set();
-          
-          for (const file of files) {
-            if (file.endsWith('.ts')) {
-              newKnownFiles.add(file);
-            }
-          }
-          
-          // Check for deletions
-          for (const file of knownFiles) {
-            if (!newKnownFiles.has(file)) {
-              console.log(`Detected deletion of: ${file}`);
-              await handleDeletion(file);
-            }
-          }
-          
-          knownFiles = newKnownFiles;
-        } catch (err) {
-          console.error(`Error updating known files: ${err.message}`);
-        }
-      };
-      
-      // Initial scan
-      updateKnownFiles();
-      
-      // Watch the cloud-ts directory for changes
-      watch('cloud-ts', { recursive: true }, async (eventType, filename) => {
-        if (!filename) return;
-        
-        console.log(`File event: ${eventType} - ${filename}`);
-        
-        // Scan for changes including deletions
-        await updateKnownFiles();
-        
-        // Always recompile on any change
-        try {
-          await compileAll();
-        } catch (err) {
-          console.error(`Error compiling files: ${err.message}`);
-        }
-      });
-      
-      // Periodically check for deleted files (as a backup)
-      setInterval(updateKnownFiles, 5000);
-    })
-    .catch(err => {
-      console.error(`Error setting up directory watch: ${err.message}`);
-      process.exit(1);
-    });
+  chokidar.watch('cloud-ts', { ignored: /(^|[\/\\])\../, persistent: true, ignoreInitial: true })
+    .on('add', compileSingleFile)
+    .on('change', compileSingleFile)
+    .on('unlink', handleDeletion)
+    .on('error', error => console.error(`Watcher error: ${error}`));
+
+  console.log('Watcher initialized. Monitoring cloud-ts directory for changes...');
 };
 
 // Main function
 const main = async () => {
-  try {
-    // Ensure cloud-ts directory exists
-    await fs.mkdir('cloud-ts', { recursive: true });
-    
-    // Perform initial compilation
-    await compileAll();
-    
-    // Watch for changes
-    watchForChanges();
-    
-    console.log('Cloud-TS watch process started. Press Ctrl+C to stop.');
-    console.log('Edit, save, or delete TypeScript files in cloud-ts directory to automatically sync them.');
-  } catch (err) {
-    console.error(`Watch process failed: ${err.message}`);
-    process.exit(1);
-  }
+  await fs.mkdir('cloud-ts', { recursive: true });
+  await compileAll();
+  watchForChanges();
+  console.log('Cloud-TS watch process started. Press Ctrl+C to stop.');
 };
 
-main(); 
+main().catch(err => {
+  console.error(`Watch process failed: ${err.message}`);
+  process.exit(1);
+}); 

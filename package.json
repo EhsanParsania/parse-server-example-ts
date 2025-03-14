@@ -23,7 +23,7 @@
     "watch:cloud-sync": "node watch-cloud.mjs",
     "build:cloud": "tsc --project tsconfig.json",
     "clean:cloud": "rimraf \"./cloud\"",
-    "dev": "npm run clean:cloud && concurrently \"npm run watch:cloud-sync\" \"npm run watch\"",
+    "dev": "concurrently \"npm run watch:cloud-sync\" \"npm run watch\"",
     "build:cloud-sync": "npm run clean:cloud && npm run build:cloud"
   },
   "dependencies": {
@@ -44,6 +44,7 @@
     "@types/express": "^4.17.21",
     "@types/node": "^20.11.5",
     "@types/parse": "^3.0.9",
+    "chokidar": "^3.5.3",
     "concurrently": "^8.2.2",
     "cross-env": "7.0.3",
     "eslint": "8.38.0",
